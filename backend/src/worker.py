@@ -7,6 +7,7 @@ from src.config.settings import REDIS_URL
 from src.models import Job, Dataset, Report
 from src.services.business import analyze
 from src.services.reports import deliver
+from src.services.meals import recover_batches
 from src.services.audit import record
 logging.basicConfig(level=logging.INFO)
 def execute(job_id):
@@ -41,6 +42,7 @@ def main():
         for j in db.scalars(select(Job).where(Job.status=='running')):
             j.status='queued';record(db,'worker','job.recovered',{'id':j.id})
         db.commit()
+        recover_batches(db,'worker-startup')
     while True:
         Path('/tmp/heartbeat').touch()
         try:
